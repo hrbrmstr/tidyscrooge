@@ -1,4 +1,5 @@
 library(rprojroot)
+library(gutenbergr)
 library(hrbrthemes)
 library(stringi)
 library(tidytext)
@@ -6,8 +7,22 @@ library(tidyverse)
 
 rt <- find_rstudio_root_file()
 
-#' Read in the book text (NOTE: Book data from Project Gutenberg)
-carol_txt <- stri_read_lines(file.path(rt, "data", "46-8.txt"))
+carol_rds <- file.path(rt, "data", "carol.rds")
+
+if (!file.exists(carol_rds)) {
+  # Running this will show that the ID of A Christmas Carol is "46"
+  # gutenberg_works(author=="Dickens, Charles")
+  carol_df <- gutenberg_download("46")
+  write_rds(carol_df, carol_rds)
+} else {
+  carol_df <- read_rds(carol_rds)
+}
+
+#' Convenience only
+carol_txt <- carol_df$text
+
+# Just want the chapters (staves)
+carol_txt <- carol_txt[-(1:(which(grepl("STAVE I:", carol_txt)))-1)]
 
 #' We'll need this later to make prettier facet titles
 data_frame(
